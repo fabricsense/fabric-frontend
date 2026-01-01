@@ -174,7 +174,7 @@ You need Docker, docker-compose and git setup on your machine. Refer [Docker doc
     # Download the setup script
     wget -O init.sh https://raw.githubusercontent.com/frappe/crm/develop/docker/init.sh
 
-**Step 2**: Run the container and daemonize it
+**Step 2**: Run the containers and daemonize it
 
     docker compose up -d
 
