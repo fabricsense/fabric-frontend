@@ -203,8 +203,13 @@ const links = [
     icon: LucideLayoutDashboard,
     to: 'Dashboard',
   },
+  // {
+  //   label: 'Leads',
+  //   icon: LeadsIcon,
+  //   to: 'Leads',
+  // },
   {
-    label: 'Leads',
+    label: 'Measurement Sheet',
     icon: LeadsIcon,
     to: 'Leads',
   },

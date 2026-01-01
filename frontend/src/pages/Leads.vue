@@ -265,7 +265,7 @@
       />
     </div>
   </div>
-  <LeadModal
+  <LeadModalNew
     v-if="showLeadModal"
     v-model="showLeadModal"
     :defaults="defaults"
@@ -300,7 +300,7 @@ import LeadsIcon from '@/components/Icons/LeadsIcon.vue'
 import LayoutHeader from '@/components/LayoutHeader.vue'
 import LeadsListView from '@/components/ListViews/LeadsListView.vue'
 import KanbanView from '@/components/Kanban/KanbanView.vue'
-import LeadModal from '@/components/Modals/LeadModal.vue'
+import LeadModalNew from '@/components/Modals/LeadModalNew.vue'
 import NoteModal from '@/components/Modals/NoteModal.vue'
 import TaskModal from '@/components/Modals/TaskModal.vue'
 import ViewControls from '@/components/ViewControls.vue'
