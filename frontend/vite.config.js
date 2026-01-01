@@ -68,7 +68,7 @@ export default defineConfig(async ({ mode }) => {
       ],
     },
     server: {
-      allowedHosts: ['fabricssense.local'],
+      allowedHosts: ['fabricssense.local', 'fabric.local'],
       fs: {
         allow: [path.resolve(__dirname, '..')],
       },
