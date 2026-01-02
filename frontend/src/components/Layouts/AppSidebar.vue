@@ -215,59 +215,59 @@ const mainLinks = [
   //   icon: LeadsIcon,
   //   to: 'Leads',
   // },
-  {
-    label: 'Sales Order',
-    icon: FileTextIcon,
-    to: 'Sales Order',
-  },
+  // {
+  //   label: 'Sales Order',
+  //   icon: FileTextIcon,
+  //   to: 'Sales Order',
+  // },
   {
     label: 'Measurement Sheet',
     icon: FileSpreadsheetIcon,
     to: 'Measurement Sheet',
   },
   {
-    label: 'Delivery Schedule',
+    label: 'Settings',
     icon: CalendarIcon,
     to: 'Delivery Schedule',
   },
-  {
-    label: 'Installation',
-    icon: DocumentIcon,
-    to: 'Installation',
-  },
-  {
-    label: 'Invoices',
-    icon: MoneyIcon,
-    to: 'Invoices',
-  },
+  //{
+  //  label: 'Installation',
+  //  icon: DocumentIcon,
+  //  to: 'Installation',
+  //},
+  //{
+  //  label: 'Invoices',
+  //  icon: MoneyIcon,
+  //  to: 'Invoices',
+  //},
 ]
 
 const mastersLinks = [
-  {
-    label: 'Customers',
-    icon: ContactsIcon,
-    to: 'Customers',
-  },
-  {
-    label: 'Items',
-    icon: DocumentIcon,
-    to: 'Items',
-  },
-  {
-    label: 'Suppliers',
-    icon: OrganizationsIcon,
-    to: 'Suppliers',
-  },
-  {
-    label: 'Fabric Catalog',
-    icon: FileImageIcon,
-    to: 'Fabric Catalog',
-  },
-  {
-    label: 'Hardware',
-    icon: FileIcon,
-    to: 'Hardware',
-  },
+  // {
+  //   label: 'Customers',
+  //   icon: ContactsIcon,
+  //   to: 'Customers',
+  // },
+  // {
+  //   label: 'Items',
+  //   icon: DocumentIcon,
+  //   to: 'Items',
+  // },
+  // {
+  //   label: 'Suppliers',
+  //   icon: OrganizationsIcon,
+  //   to: 'Suppliers',
+  // },
+  // {
+  //   label: 'Fabric Catalog',
+  //   icon: FileImageIcon,
+  //   to: 'Fabric Catalog',
+  // },
+  // {
+  //   label: 'Hardware',
+  //   icon: FileIcon,
+  //   to: 'Hardware',
+  // },
 ]
 
 const allViews = computed(() => {
