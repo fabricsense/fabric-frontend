@@ -25,13 +25,12 @@
               <div>
                 <label class="mb-2 block text-sm text-ink-gray-5">
                   {{ __('Series') }}
-                  <span class="text-ink-red-2">*</span>
                 </label>
                 <FormControl
                   type="select"
                   v-model="lead.doc.series"
                   :options="seriesOptions"
-                  :placeholder="__('Series')"
+                  placeholder="MS-.YYYY.-.####"
                 />
               </div>
               
@@ -39,7 +38,6 @@
               <div>
                 <label class="mb-2 block text-sm text-ink-gray-5">
                   {{ __('Customer') }}
-                  <span class="text-ink-red-2">*</span>
                 </label>
                 <Link
                   :value="lead.doc.customer"
@@ -59,6 +57,19 @@
                   v-model="lead.doc.services_required"
                   :options="servicesOptions"
                   :placeholder="__('Services Required')"
+                />
+              </div>
+              
+              <!-- Project -->
+              <div v-if="lead.doc.services_required === 'Fitting'">
+                <label class="mb-2 block text-sm text-ink-gray-5">
+                  {{ __('Project') }}
+                </label>
+                <Link
+                  :value="lead.doc.project"
+                  doctype="Project"
+                  :placeholder="__('Project')"
+                  @change="(value) => (lead.doc.project = value)"
                 />
               </div>
             </div>
@@ -82,7 +93,6 @@
               <div>
                 <label class="mb-2 block text-sm text-ink-gray-5">
                   {{ __('Measurement Date') }}
-                  <span class="text-ink-red-2">*</span>
                 </label>
                 <DatePicker
                   :value="lead.doc.measurement_date"
@@ -97,7 +107,6 @@
               <div>
                 <label class="mb-2 block text-sm text-ink-gray-5">
                   {{ __('Measurement Method') }}
-                  <span class="text-ink-red-2">*</span>
                 </label>
                 <FormControl
                   type="select"
@@ -113,7 +122,7 @@
                   {{ __('Sales Person') }}
                 </label>
                 <Link
-                  :value="lead.doc.sales_person"
+                  :value="lead.doc.sales_person && getUser(lead.doc.sales_person).full_name"
                   doctype="User"
                   :placeholder="__('Sales Person')"
                   @change="(value) => (lead.doc.sales_person = value)"
@@ -129,22 +138,32 @@
           <Button
             variant="solid"
             :label="__('Create')"
-            :loading="isLeadCreating"
             @click="createNewLead"
+          />
+          <Button
+            variant="outline"
+            :label="__('Edit Full Form')"
+            @click="openFullForm"
           />
         </div>
       </div>
     </template>
   </Dialog>
+  <LeadModal
+    v-if="showFullForm"
+    v-model="showFullForm"
+    :defaults="lead.doc"
+  />
 </template>
 
 <script setup>
 import Link from '@/components/Controls/Link.vue'
+import LeadModal from '@/components/Modals/LeadModal.vue'
 import { usersStore } from '@/stores/users'
 import { statusesStore } from '@/stores/statuses'
 import { sessionStore } from '@/stores/session'
 import { capture } from '@/telemetry'
-import { FormControl, DatePicker, ErrorMessage, Dialog, Button, createResource } from 'frappe-ui'
+import { FormControl, DatePicker, ErrorMessage, Dialog, createResource } from 'frappe-ui'
 import { useOnboarding } from 'frappe-ui/frappe'
 import { useDocument } from '@/data/document'
 import { formatDate } from '@/utils'
@@ -164,15 +183,23 @@ const show = defineModel()
 const router = useRouter()
 const error = ref(null)
 const isLeadCreating = ref(false)
+const showFullForm = ref(false)
 
 const { document: lead, triggerOnBeforeCreate } = useDocument('CRM Lead')
 
+// Ensure lead.doc is initialized
+if (!lead.doc) {
+  lead.doc = {}
+}
+
 const leadStatuses = computed(() => {
-  let statuses = statusOptions('lead')
-  if (!lead.doc.status) {
-    lead.doc.status = statuses?.[0]?.value
-  }
-  return statuses
+  // Return specific status options as shown in the image
+  return [
+    { label: 'Draft', value: 'Draft' },
+    { label: 'Customer Approval Pending', value: 'Customer Approval Pending' },
+    { label: 'Approved', value: 'Approved' },
+    { label: 'Rejected', value: 'Rejected' },
+  ]
 })
 
 const seriesOptions = [
@@ -193,56 +220,14 @@ const createLead = createResource({
   url: 'frappe.client.insert',
 })
 
-async function createNewLead() {
-  await triggerOnBeforeCreate?.()
+function createNewLead() {
+  // Just close the modal - this is for visual representation only
+  show.value = false
+}
 
-  createLead.submit(
-    {
-      doc: {
-        doctype: 'CRM Lead',
-        ...lead.doc,
-      },
-    },
-    {
-      validate() {
-        error.value = null
-        if (!lead.doc.series) {
-          error.value = __('Series is mandatory')
-          return error.value
-        }
-        if (!lead.doc.customer) {
-          error.value = __('Customer is mandatory')
-          return error.value
-        }
-        if (!lead.doc.measurement_date) {
-          error.value = __('Measurement Date is mandatory')
-          return error.value
-        }
-        if (!lead.doc.measurement_method) {
-          error.value = __('Measurement Method is mandatory')
-          return error.value
-        }
-        isLeadCreating.value = true
-      },
-      onSuccess(data) {
-        capture('lead_created')
-        isLeadCreating.value = false
-        show.value = false
-        router.push({ name: 'Lead', params: { leadId: data.name } })
-        updateOnboardingStep('create_first_lead', true, false, () => {
-          localStorage.setItem('firstLead' + user, data.name)
-        })
-      },
-      onError(err) {
-        isLeadCreating.value = false
-        if (!err.messages) {
-          error.value = err.message
-          return
-        }
-        error.value = err.messages.join('\n')
-      },
-    },
-  )
+function openFullForm() {
+  showFullForm.value = true
+  show.value = false
 }
 
 onMounted(() => {
@@ -263,8 +248,14 @@ onMounted(() => {
     lead.doc.sales_person = user
   }
 
-  if (!lead.doc?.status && leadStatuses.value[0]?.value) {
-    lead.doc.status = leadStatuses.value[0].value
+  // Set default series
+  if (!lead.doc?.series) {
+    lead.doc.series = 'MS-.YYYY.-.####'
+  }
+
+  // Set default status to "Draft"
+  if (!lead.doc?.status) {
+    lead.doc.status = 'Draft'
   }
 })
 </script>

@@ -158,6 +158,13 @@ import OrganizationsIcon from '@/components/Icons/OrganizationsIcon.vue'
 import NoteIcon from '@/components/Icons/NoteIcon.vue'
 import TaskIcon from '@/components/Icons/TaskIcon.vue'
 import PhoneIcon from '@/components/Icons/PhoneIcon.vue'
+import DocumentIcon from '@/components/Icons/DocumentIcon.vue'
+import FileTextIcon from '@/components/Icons/FileTextIcon.vue'
+import FileSpreadsheetIcon from '@/components/Icons/FileSpreadsheetIcon.vue'
+import CalendarIcon from '@/components/Icons/CalendarIcon.vue'
+import MoneyIcon from '@/components/Icons/MoneyIcon.vue'
+import FileImageIcon from '@/components/Icons/FileImageIcon.vue'
+import FileIcon from '@/components/Icons/FileIcon.vue'
 import CollapseSidebar from '@/components/Icons/CollapseSidebar.vue'
 import NotificationsIcon from '@/components/Icons/NotificationsIcon.vue'
 import HelpIcon from '@/components/Icons/HelpIcon.vue'
@@ -197,7 +204,7 @@ const isSidebarCollapsed = useStorage('isSidebarCollapsed', false)
 const isFCSite = ref(window.is_fc_site)
 const isDemoSite = ref(window.is_demo_site)
 
-const links = [
+const mainLinks = [
   {
     label: 'Dashboard',
     icon: LucideLayoutDashboard,
@@ -209,49 +216,78 @@ const links = [
   //   to: 'Leads',
   // },
   {
+    label: 'Sales Order',
+    icon: FileTextIcon,
+    to: 'Sales Order',
+  },
+  {
     label: 'Measurement Sheet',
-    icon: LeadsIcon,
-    to: 'Leads',
+    icon: FileSpreadsheetIcon,
+    to: 'Measurement Sheet',
   },
   {
-    label: 'Deals',
-    icon: DealsIcon,
-    to: 'Deals',
+    label: 'Delivery Schedule',
+    icon: CalendarIcon,
+    to: 'Delivery Schedule',
   },
   {
-    label: 'Contacts',
+    label: 'Installation',
+    icon: DocumentIcon,
+    to: 'Installation',
+  },
+  {
+    label: 'Invoices',
+    icon: MoneyIcon,
+    to: 'Invoices',
+  },
+]
+
+const mastersLinks = [
+  {
+    label: 'Customers',
     icon: ContactsIcon,
-    to: 'Contacts',
+    to: 'Customers',
   },
   {
-    label: 'Organizations',
+    label: 'Items',
+    icon: DocumentIcon,
+    to: 'Items',
+  },
+  {
+    label: 'Suppliers',
     icon: OrganizationsIcon,
-    to: 'Organizations',
+    to: 'Suppliers',
   },
   {
-    label: 'Notes',
-    icon: NoteIcon,
-    to: 'Notes',
+    label: 'Fabric Catalog',
+    icon: FileImageIcon,
+    to: 'Fabric Catalog',
   },
   {
-    label: 'Tasks',
-    icon: TaskIcon,
-    to: 'Tasks',
-  },
-  {
-    label: 'Call Logs',
-    icon: PhoneIcon,
-    to: 'Call Logs',
+    label: 'Hardware',
+    icon: FileIcon,
+    to: 'Hardware',
   },
 ]
 
 const allViews = computed(() => {
   let _views = [
     {
-      name: 'All Views',
-      hideLabel: true,
+      name: 'MAIN',
+      hideLabel: false,
       opened: true,
-      views: links.filter((link) => {
+      views: mainLinks.filter((link) => {
+        if (link.condition) {
+          return link.condition()
+        }
+        return true
+      }),
+    },
+    {
+      name: 'MASTERS',
+      hideLabel: false,
+      opened: true,
+      views: mastersLinks.filter((link) => {
         if (link.condition) {
           return link.condition()
         }
@@ -307,6 +343,26 @@ function getIcon(routeName, icon) {
       return NoteIcon
     case 'Call Logs':
       return PhoneIcon
+    case 'Items':
+      return DocumentIcon
+    case 'Sales Order':
+      return FileTextIcon
+    case 'Measurement Sheet':
+      return FileSpreadsheetIcon
+    case 'Delivery Schedule':
+      return CalendarIcon
+    case 'Installation':
+      return DocumentIcon
+    case 'Invoices':
+      return MoneyIcon
+    case 'Customers':
+      return ContactsIcon
+    case 'Suppliers':
+      return OrganizationsIcon
+    case 'Fabric Catalog':
+      return FileImageIcon
+    case 'Hardware':
+      return FileIcon
     default:
       return PinIcon
   }
