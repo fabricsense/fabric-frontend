@@ -218,6 +218,11 @@ onMounted(() => {
       status.value = savedData.status
     }
     
+    // Recalculate total rates for all areas
+    areas.value.forEach((area, index) => {
+      updateAreaTotalRate(index)
+    })
+    
     console.log('Loaded areas from sessionStorage:', areas.value)
   } else {
     // No saved data - start with empty areas
@@ -429,25 +434,206 @@ function handleAddProduct(areaIndex) {
   // Handle add product action
 }
 
+function updateAreaTotalRate(areaIndex) {
+  const area = areas.value[areaIndex]
+  if (area && area.products) {
+    area.totalRate = area.products.reduce((sum, product) => {
+      return sum + (product.rate || 0)
+    }, 0)
+  }
+}
+
 function handleRemoveProduct(areaIndex, productIndex) {
   console.log('Remove product at area index:', areaIndex, 'product index:', productIndex)
   areas.value[areaIndex].products.splice(productIndex, 1)
-  // Update area totals if needed
+  // Update area totals
+  updateAreaTotalRate(areaIndex)
 }
 
 function handleProductTypeSelected(areaIndex, productType) {
-  // Create a new product with empty/default values
+  // Get hardcoded data based on product type
+  let hardcodedFormData = {}
+  let text = ''
+  let rate = 0
+  
+  if (productType.name === 'Window Curtains') {
+    hardcodedFormData = {
+      layer: 'Front',
+      trackType: 'Curtain Rod',
+      opening: 'Center',
+      width: 30.000,
+      height: 40.000,
+      panels: 1,
+      adjust: 0.000,
+      squareFeet: 0.000,
+      fabricSelected: 'Premium Fabric A',
+      fabricQuantity: 2.5,
+      fabricRate: 500.00,
+      fabricAmount: 1250.00,
+      lining: 'Blockout Lining',
+      liningQuantity: 2.5,
+      liningRate: 300.00,
+      liningAmount: 750.00,
+      leadRope: 'Standard Lead Rope',
+      leadRopeQuantity: 5,
+      leadRopeRate: 50.00,
+      leadRopeAmount: 250.00,
+      trackRod: '',
+      trackRodType: '',
+      trackRodQty: 0,
+      trackRodRate: 0.00,
+      trackRodAmount: 0.00,
+      hardwareSelection: '',
+      hardwareRate: 0.00,
+    }
+    text = '30" × 40" • 1 Panel'
+    rate = 2250.00
+  } else if (productType.name === 'Roman Blinds') {
+    hardcodedFormData = {
+      layer: '',
+      trackType: '',
+      opening: '',
+      width: 36.000,
+      height: 48.000,
+      panels: null,
+      adjust: 0.000,
+      squareFeet: 12.000,
+      fabricSelected: 'Roman Blind Fabric',
+      fabricQuantity: 3.0,
+      fabricRate: 600.00,
+      fabricAmount: 1800.00,
+      lining: 'Roman Blind Lining',
+      liningQuantity: 3.0,
+      liningRate: 400.00,
+      liningAmount: 1200.00,
+      leadRope: '',
+      leadRopeQuantity: 0,
+      leadRopeRate: 0.00,
+      leadRopeAmount: 0.00,
+      trackRod: '',
+      trackRodType: '',
+      trackRodQty: 0,
+      trackRodRate: 0.00,
+      trackRodAmount: 0.00,
+      hardwareSelection: '',
+      hardwareRate: 0.00,
+    }
+    text = '36" × 48"'
+    rate = 3000.00
+  } else if (productType.name === 'Blinds') {
+    hardcodedFormData = {
+      layer: '',
+      trackType: '',
+      opening: '',
+      width: 24.000,
+      height: 36.000,
+      panels: null,
+      adjust: 0.000,
+      squareFeet: 10.500,
+      fabricSelected: '',
+      fabricQuantity: 0,
+      fabricRate: 0.00,
+      fabricAmount: 0.00,
+      lining: '',
+      liningQuantity: 0,
+      liningRate: 0.00,
+      liningAmount: 0.00,
+      leadRope: '',
+      leadRopeQuantity: 0,
+      leadRopeRate: 0.00,
+      leadRopeAmount: 0.00,
+      trackRod: '',
+      trackRodType: '',
+      trackRodQty: 0,
+      trackRodRate: 0.00,
+      trackRodAmount: 0.00,
+      hardwareSelection: 'Blind 1',
+      hardwareRate: 100.00,
+    }
+    text = '24" × 36"'
+    rate = 100.00
+  } else if (productType.name === 'Tracks/Rods') {
+    hardcodedFormData = {
+      layer: '',
+      trackType: '',
+      opening: '',
+      width: null,
+      height: null,
+      panels: null,
+      adjust: null,
+      squareFeet: 0.000,
+      fabricSelected: '',
+      fabricQuantity: 0,
+      fabricRate: 0.00,
+      fabricAmount: 0.00,
+      lining: '',
+      liningQuantity: 0,
+      liningRate: 0.00,
+      liningAmount: 0.00,
+      leadRope: '',
+      leadRopeQuantity: 0,
+      leadRopeRate: 0.00,
+      leadRopeAmount: 0.00,
+      trackRod: 'Premium Track System',
+      trackRodType: 'Double',
+      trackRodQty: 2,
+      trackRodRate: 1500.00,
+      trackRodAmount: 3000.00,
+      hardwareSelection: '',
+      hardwareRate: 0.00,
+    }
+    text = '2 Feet'
+    rate = 3000.00
+  } else {
+    // Default empty data for unknown product types
+    hardcodedFormData = {
+      layer: '',
+      trackType: '',
+      opening: '',
+      width: null,
+      height: null,
+      panels: null,
+      adjust: null,
+      squareFeet: 0.000,
+      fabricSelected: '',
+      fabricQuantity: 0,
+      fabricRate: 0.00,
+      fabricAmount: 0.00,
+      lining: '',
+      liningQuantity: 0,
+      liningRate: 0.00,
+      liningAmount: 0.00,
+      leadRope: '',
+      leadRopeQuantity: 0,
+      leadRopeRate: 0.00,
+      leadRopeAmount: 0.00,
+      trackRod: '',
+      trackRodType: '',
+      trackRodQty: 0,
+      trackRodRate: 0.00,
+      trackRodAmount: 0.00,
+      hardwareSelection: '',
+      hardwareRate: 0.00,
+    }
+    text = ''
+    rate = 0
+  }
+  
+  // Create a new product with hardcoded data
   const newProduct = {
     name: productType.name,
     icon: productType.icon,
-    text: '', // Empty initially, user will fill in dimensions
-    rate: 0, // Empty initially, will be calculated from form data
+    text: text,
+    rate: rate,
     id: Date.now(), // Unique ID for the product
     isNew: true, // Flag to indicate this is a new product
+    formData: hardcodedFormData, // Add hardcoded form data
   }
   
   // Add the new product to the specific area's products array
   areas.value[areaIndex].products.push(newProduct)
+  // Update area total rate
+  updateAreaTotalRate(areaIndex)
 }
 </script>
 

@@ -4,6 +4,9 @@
     <div class="px-4 py-3 border-b border-gray-200">
       <h3 class="text-lg font-semibold text-gray-900">
         {{ categoryName }} - Contains {{ productCount }} {{ productCount === 1 ? 'Product Type' : 'Product Types' }}
+        <span v-if="totalRate > 0" class="ml-2 text-base font-normal text-gray-600">
+          (₹{{ totalRate.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }})
+        </span>
       </h3>
     </div>
 

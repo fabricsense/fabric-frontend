@@ -104,12 +104,16 @@ function handleRowClick(row) {
 }
 
 function handleNewRecordCreated(newRecord) {
-  // Add the new record to the beginning of the array
-  measurementSheetData.value.unshift(newRecord)
+  // Add the new record to the array
+  measurementSheetData.value.push(newRecord)
+  // Sort all records by createdAt in descending order (newest first)
+  measurementSheetData.value.sort((a, b) => {
+    const dateA = new Date(a.createdAt || 0).getTime()
+    const dateB = new Date(b.createdAt || 0).getTime()
+    return dateB - dateA
+  })
   // Keep only the first 5 records
-  if (measurementSheetData.value.length > 5) {
-    measurementSheetData.value = measurementSheetData.value.slice(0, 5)
-  }
+  measurementSheetData.value = measurementSheetData.value.slice(0, 5)
 }
 
 onMounted(() => {
@@ -119,8 +123,16 @@ onMounted(() => {
     // Merge with existing data, avoiding duplicates
     const existingIds = new Set(measurementSheetData.value.map(r => r.id))
     const newRecords = storedRecords.filter(r => !existingIds.has(r.id))
-    measurementSheetData.value = [...newRecords, ...measurementSheetData.value].slice(0, 5)
+    measurementSheetData.value = [...newRecords, ...measurementSheetData.value]
   }
+  // Sort all records by createdAt in descending order (newest first)
+  measurementSheetData.value.sort((a, b) => {
+    const dateA = new Date(a.createdAt || 0).getTime()
+    const dateB = new Date(b.createdAt || 0).getTime()
+    return dateB - dateA
+  })
+  // Keep only the first 5 records
+  measurementSheetData.value = measurementSheetData.value.slice(0, 5)
 })
 </script>
 
