@@ -84,9 +84,10 @@
             <!-- Add Area Button -->
             <div class="mb-4">
               <Button
-                variant="outline"
+                variant="solid"
                 iconLeft="plus"
                 :label="__('Add Area')"
+                class="bg-blue-600 hover:bg-blue-700 text-white border-blue-600 hover:border-blue-700"
                 @click="showAreaSelector = !showAreaSelector"
               />
               
@@ -100,6 +101,14 @@
                 >
                   {{ area.label }}
                 </div>
+              </div>
+            </div>
+
+            <!-- Empty State Message -->
+            <div v-if="areas.length === 0" class="text-center py-12 px-4">
+              <div class="max-w-md mx-auto">
+                <p class="text-gray-400 text-base mb-2">{{ __('No areas added yet') }}</p>
+                <p class="text-gray-500 text-sm">{{ __('Click "Add Area" above to start adding measurements for different rooms or spaces') }}</p>
               </div>
             </div>
 
