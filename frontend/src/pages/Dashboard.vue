@@ -233,7 +233,7 @@ const options = computed(() => [
 ])
 
 const dashboardItems = createResource({
-  url: 'crm.api.dashboard.get_dashboard',
+  url: 'crm.api.dashboard.get_custom_dashboard',
   makeParams() {
     return {
       from_date: fromDate.value,
