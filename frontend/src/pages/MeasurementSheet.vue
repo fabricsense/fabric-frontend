@@ -6,7 +6,7 @@
     <template #right-header>
       <Button
         variant="solid"
-        :label="__('Create')"
+        :label="__('Create Measurement Sheet')"
         iconLeft="plus"
         @click="showLeadModal = true"
       />
@@ -22,6 +22,7 @@
   <LeadModalNew
     v-if="showLeadModal"
     v-model="showLeadModal"
+    @created="handleNewRecordCreated"
   />
 </template>
 
@@ -30,7 +31,7 @@ import ViewBreadcrumbs from '@/components/ViewBreadcrumbs.vue'
 import LayoutHeader from '@/components/LayoutHeader.vue'
 import MeasurementSheetTable from '@/components/MeasurementSheetTable.vue'
 import LeadModalNew from '@/components/Modals/LeadModalNew.vue'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -101,5 +102,25 @@ function handleRowClick(row) {
   sessionStorage.setItem('measurementSheetData', JSON.stringify(row))
   router.push({ name: 'Measurement Sheet Detail', params: { sheetId: row.id } })
 }
+
+function handleNewRecordCreated(newRecord) {
+  // Add the new record to the beginning of the array
+  measurementSheetData.value.unshift(newRecord)
+  // Keep only the first 5 records
+  if (measurementSheetData.value.length > 5) {
+    measurementSheetData.value = measurementSheetData.value.slice(0, 5)
+  }
+}
+
+onMounted(() => {
+  // Load records from session storage
+  const storedRecords = JSON.parse(sessionStorage.getItem('measurementSheets') || '[]')
+  if (storedRecords.length > 0) {
+    // Merge with existing data, avoiding duplicates
+    const existingIds = new Set(measurementSheetData.value.map(r => r.id))
+    const newRecords = storedRecords.filter(r => !existingIds.has(r.id))
+    measurementSheetData.value = [...newRecords, ...measurementSheetData.value].slice(0, 5)
+  }
+})
 </script>
 

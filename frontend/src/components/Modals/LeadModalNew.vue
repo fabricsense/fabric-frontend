@@ -39,11 +39,10 @@
                 <label class="mb-2 block text-sm text-ink-gray-5">
                   {{ __('Customer') }}
                 </label>
-                <Link
-                  :value="lead.doc.customer"
-                  doctype="Customer"
+                <FormControl
+                  type="text"
+                  v-model="lead.doc.customer"
                   :placeholder="__('Customer')"
-                  @change="(value) => (lead.doc.customer = value)"
                 />
               </div>
               
@@ -140,11 +139,6 @@
             :label="__('Create')"
             @click="createNewLead"
           />
-          <Button
-            variant="outline"
-            :label="__('Edit Full Form')"
-            @click="openFullForm"
-          />
         </div>
       </div>
     </template>
@@ -185,6 +179,8 @@ const error = ref(null)
 const isLeadCreating = ref(false)
 const showFullForm = ref(false)
 
+const emit = defineEmits(['created'])
+
 const { document: lead, triggerOnBeforeCreate } = useDocument('CRM Lead')
 
 // Ensure lead.doc is initialized
@@ -221,8 +217,45 @@ const createLead = createResource({
 })
 
 function createNewLead() {
-  // Just close the modal - this is for visual representation only
+  // Generate a new ID based on series
+  const today = new Date()
+  const year = today.getFullYear()
+  const timestamp = Date.now()
+  const randomNum = Math.floor(Math.random() * 10000).toString().padStart(4, '0')
+  const newId = `MS-${year}-${randomNum}`
+  
+  // Get sales person full name
+  const salesPersonName = lead.doc.sales_person && getUser(lead.doc.sales_person)?.full_name || lead.doc.sales_person || 'Administrator'
+  
+  // Create new measurement sheet record
+  const newRecord = {
+    id: newId,
+    customer: lead.doc.customer || '',
+    measurementDate: lead.doc.measurement_date || new Date().toISOString().split('T')[0],
+    measurementDateFull: lead.doc.measurement_date || new Date().toISOString().split('T')[0],
+    measurementMethod: lead.doc.measurement_method || '',
+    serviceRequired: lead.doc.services_required || '',
+    salesPerson: salesPersonName,
+    status: lead.doc.status || 'Draft',
+    createdAt: new Date().toISOString(),
+  }
+  
+  // Save to session storage
+  const existingData = JSON.parse(sessionStorage.getItem('measurementSheets') || '[]')
+  existingData.push(newRecord)
+  sessionStorage.setItem('measurementSheets', JSON.stringify(existingData))
+  
+  // Store the row data in sessionStorage to pass to detail page
+  sessionStorage.setItem('measurementSheetData', JSON.stringify(newRecord))
+  
+  // Emit the new record to parent component
+  emit('created', newRecord)
+  
+  // Close the modal
   show.value = false
+  
+  // Navigate to the detail page
+  router.push({ name: 'Measurement Sheet Detail', params: { sheetId: newId } })
 }
 
 function openFullForm() {

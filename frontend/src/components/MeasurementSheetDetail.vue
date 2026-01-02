@@ -220,46 +220,9 @@ onMounted(() => {
     
     console.log('Loaded areas from sessionStorage:', areas.value)
   } else {
-    // No saved data - use default hardcoded data
-    areas.value = [
-      {
-        id: 1,
-        name: 'Living Room',
-        icon: FileImageIcon,
-        description: 'Window Curtains, Sheer Curtains, Blinds',
-        products: [
-          {
-            id: 1,
-            name: 'Window Curtains - Front Layer',
-            icon: DocumentIcon,
-            text: '30" × 40" • 1 Panel',
-            rate: 6263.00,
-            isNew: false,
-          },
-          {
-            id: 2,
-            name: 'Sheer Curtains - Back Layer',
-            icon: SparkleIcon,
-            text: '30" × 40" • 1 Panel',
-            rate: 4580.00,
-            isNew: false,
-          },
-          {
-            id: 3,
-            name: 'Roller Blinds - Balcony Door',
-            icon: FileIcon,
-            text: '36" × 60"',
-            rate: 4637.00,
-            isNew: false,
-          },
-        ],
-        totalFabric: '7.5m',
-        totalLining: '5m',
-        totalRate: 15480.00,
-        isNew: false,
-      },
-    ]
-    console.log('Using default areas (no saved data found)')
+    // No saved data - start with empty areas
+    areas.value = []
+    console.log('No saved data found, starting with empty areas')
   }
 })
 
