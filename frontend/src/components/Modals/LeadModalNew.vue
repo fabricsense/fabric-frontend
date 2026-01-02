@@ -227,7 +227,7 @@ function createNewLead() {
 
 function openFullForm() {
   showFullForm.value = true
-  show.value = false
+        show.value = false
 }
 
 onMounted(() => {

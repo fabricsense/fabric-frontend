@@ -135,7 +135,7 @@
 import LayoutHeader from '@/components/LayoutHeader.vue'
 import CategoryProductContainer from '@/components/CategoryProductContainer.vue'
 import { Button, Badge, Dropdown, Tabs, Breadcrumbs, call, toast } from 'frappe-ui'
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import DocumentIcon from '@/components/Icons/DocumentIcon.vue'
 import SparkleIcon from '@/components/Icons/SparkleIcon.vue'
@@ -163,51 +163,105 @@ const status = ref(props.data.status || 'Draft')
 const activeTab = ref(0)
 const showAreaSelector = ref(false)
 
+// Helper function to get icon component from name
+const getIconComponent = (iconName) => {
+  const iconMap = {
+    'document': DocumentIcon,
+    'sparkle': SparkleIcon,
+    'file': FileIcon,
+    'window': FileImageIcon,
+  }
+  return iconMap[iconName] || FileIcon
+}
+
 // Available areas to add
 const availableAreas = [
+  { label: 'Bed room', value: 'bed-room', icon: FileImageIcon, description: 'Window Curtains, Sheer Curtains, Blinds' },
+  { label: 'Master bedroom', value: 'master-bedroom', icon: FileImageIcon, description: 'Window Curtains, Sheer Curtains, Blinds' },
+  { label: 'Guest Room', value: 'guest-room', icon: FileImageIcon, description: 'Window Curtains, Sheer Curtains, Blinds' },
+  { label: 'Kids Room', value: 'kids-room', icon: FileImageIcon, description: 'Window Curtains, Sheer Curtains, Blinds' },
   { label: 'Living Room', value: 'living-room', icon: FileImageIcon, description: 'Window Curtains, Sheer Curtains, Blinds' },
-  { label: 'Bed Room', value: 'bed-room', icon: FileImageIcon, description: 'Window Curtains, Sheer Curtains, Blinds' },
 ]
 
-// Areas data structure - each area has its own products
-const areas = ref([
-  {
-    id: 1,
-    name: 'Living Room',
-    icon: FileImageIcon,
-    description: 'Window Curtains, Sheer Curtains, Blinds',
-    products: [
+// Areas data structure - initialized as empty, will be populated from sessionStorage or defaults
+const areas = ref([])
+
+// Load saved data from sessionStorage on mount
+onMounted(() => {
+  const savedSheets = JSON.parse(sessionStorage.getItem('savedMeasurementSheets') || '{}')
+  const savedData = savedSheets[props.sheetId]
+  
+  if (savedData && savedData.areas && savedData.areas.length > 0) {
+    // Restore areas from saved data, converting iconName back to icon components
+    areas.value = savedData.areas.map(area => ({
+      id: area.id,
+      name: area.name,
+      icon: getIconComponent(area.iconName),
+      description: area.description,
+      products: area.products.map(product => ({
+        id: product.id,
+        name: product.name,
+        icon: getIconComponent(product.iconName),
+        text: product.text,
+        rate: product.rate,
+        isNew: product.isNew,
+        formData: product.formData || null,
+      })),
+      totalFabric: area.totalFabric,
+      totalLining: area.totalLining,
+      totalRate: area.totalRate,
+      isNew: area.isNew,
+    }))
+    
+    // Also restore status if saved
+    if (savedData.status) {
+      status.value = savedData.status
+    }
+    
+    console.log('Loaded areas from sessionStorage:', areas.value)
+  } else {
+    // No saved data - use default hardcoded data
+    areas.value = [
       {
         id: 1,
-        name: 'Window Curtains - Front Layer',
-        icon: DocumentIcon,
-        text: '30" × 40" • 1 Panel',
-        rate: 6263.00,
+        name: 'Living Room',
+        icon: FileImageIcon,
+        description: 'Window Curtains, Sheer Curtains, Blinds',
+        products: [
+          {
+            id: 1,
+            name: 'Window Curtains - Front Layer',
+            icon: DocumentIcon,
+            text: '30" × 40" • 1 Panel',
+            rate: 6263.00,
+            isNew: false,
+          },
+          {
+            id: 2,
+            name: 'Sheer Curtains - Back Layer',
+            icon: SparkleIcon,
+            text: '30" × 40" • 1 Panel',
+            rate: 4580.00,
+            isNew: false,
+          },
+          {
+            id: 3,
+            name: 'Roller Blinds - Balcony Door',
+            icon: FileIcon,
+            text: '36" × 60"',
+            rate: 4637.00,
+            isNew: false,
+          },
+        ],
+        totalFabric: '7.5m',
+        totalLining: '5m',
+        totalRate: 15480.00,
         isNew: false,
       },
-      {
-        id: 2,
-        name: 'Sheer Curtains - Back Layer',
-        icon: SparkleIcon,
-        text: '30" × 40" • 1 Panel',
-        rate: 4580.00,
-        isNew: false,
-      },
-      {
-        id: 3,
-        name: 'Roller Blinds - Balcony Door',
-        icon: FileIcon,
-        text: '36" × 60"',
-        rate: 4637.00,
-        isNew: false,
-      },
-    ],
-    totalFabric: '7.5m',
-    totalLining: '5m',
-    totalRate: 15480.00,
-    isNew: false,
-  },
-])
+    ]
+    console.log('Using default areas (no saved data found)')
+  }
+})
 
 // Available product types for selection
 const productTypes = ref([
@@ -216,23 +270,15 @@ const productTypes = ref([
     icon: DocumentIcon,
   },
   {
-    name: 'Sheer Curtains',
-    icon: SparkleIcon,
+    name: 'Roman Blinds',
+    icon: FileIcon,
   },
   {
     name: 'Blinds',
     icon: FileIcon,
   },
   {
-    name: 'Roller Blinds',
-    icon: FileIcon,
-  },
-  {
-    name: 'Vertical Blinds',
-    icon: FileIcon,
-  },
-  {
-    name: 'Roman Blinds',
+    name: 'Tracks/Rods',
     icon: FileIcon,
   },
 ])
@@ -287,62 +333,84 @@ function formatDate(dateString) {
 
 async function handleSave() {
   try {
-    // Prepare the document data
-    const docData = {
-      doctype: 'CRM Lead',
-      name: props.sheetId,
+    // Helper function to get icon name from component
+    const getIconName = (iconComponent) => {
+      if (!iconComponent) return 'file'
+      if (iconComponent === DocumentIcon) return 'document'
+      if (iconComponent === SparkleIcon) return 'sparkle'
+      if (iconComponent === FileIcon) return 'file'
+      if (iconComponent === FileImageIcon || iconComponent === WindowIcon) return 'window'
+      return 'file'
+    }
+
+    // Serialize areas data - convert icon components to string names
+    const serializableAreas = areas.value.map(area => ({
+      id: area.id,
+      name: area.name,
+      iconName: getIconName(area.icon),
+      description: area.description,
+      products: area.products.map(product => ({
+        id: product.id,
+        name: product.name,
+        iconName: getIconName(product.icon),
+        text: product.text,
+        rate: product.rate,
+        isNew: product.isNew,
+        formData: product.formData || null,
+      })),
+      totalFabric: area.totalFabric,
+      totalLining: area.totalLining,
+      totalRate: area.totalRate,
+      isNew: area.isNew,
+    }))
+
+    // Prepare the measurement sheet data for saving
+    const measurementData = {
       customer: props.data.customer,
-      measurement_date: props.data.measurementDate,
-      service_required: props.data.serviceRequired,
-      sales_person: props.data.salesPerson,
-      measurement_method: props.data.measurementMethod,
+      measurementDate: props.data.measurementDate,
+      serviceRequired: props.data.serviceRequired,
+      salesPerson: props.data.salesPerson,
+      measurementMethod: props.data.measurementMethod,
       status: status.value,
-      // Save areas and products as JSON
-      areas_data: JSON.stringify(areas.value),
+      areas: serializableAreas,
     }
 
-    // Check if document exists
-    let documentExists = false
+    console.log('Saving Measurement Sheet:', props.sheetId)
+    console.log('Measurement Data:', measurementData)
+
+    // Save to sessionStorage for persistence across page refreshes
+    const savedSheets = JSON.parse(sessionStorage.getItem('savedMeasurementSheets') || '{}')
+    savedSheets[props.sheetId] = measurementData
+    sessionStorage.setItem('savedMeasurementSheets', JSON.stringify(savedSheets))
+    
+    console.log('Saved to sessionStorage successfully:', props.sheetId)
+
+    // Try to save to backend if CRM Lead exists with this ID
     try {
-      await call('frappe.client.get', {
+      // Check if a CRM Lead with matching name exists
+      const existingLead = await call('frappe.client.get_value', {
         doctype: 'CRM Lead',
-        name: props.sheetId,
+        filters: { name: props.sheetId },
+        fieldname: ['name', 'first_name'],
       })
-      documentExists = true
-    } catch (getError) {
-      // Document doesn't exist, will create new one
-      documentExists = false
-    }
 
-    let result
-    if (documentExists) {
-      // Update existing document - update all fields
-      for (const [fieldname, value] of Object.entries({
-        customer: props.data.customer,
-        measurement_date: props.data.measurementDate,
-        service_required: props.data.serviceRequired,
-        sales_person: props.data.salesPerson,
-        measurement_method: props.data.measurementMethod,
-        status: status.value,
-        areas_data: JSON.stringify(areas.value),
-      })) {
+      if (existingLead && existingLead.name) {
+        // Update existing CRM Lead with available fields
         await call('frappe.client.set_value', {
           doctype: 'CRM Lead',
-          name: props.sheetId,
-          fieldname: fieldname,
-          value: value,
+          name: existingLead.name,
+          fieldname: 'status',
+          value: status.value === 'Draft' ? 'New' : status.value,
         })
+        console.log('Updated CRM Lead:', existingLead.name)
       }
-      result = { name: props.sheetId }
-    } else {
-      // Create new document
-      result = await call('frappe.client.insert', {
-        doc: docData,
-      })
+    } catch (apiError) {
+      // Backend save failed, but sessionStorage save succeeded
+      console.log('Backend save skipped (no matching CRM Lead):', apiError.message || apiError)
     }
 
     toast.success(__('Measurement Sheet saved successfully'))
-    console.log('Save result:', result)
+    status.value = props.data.status || 'Draft'
   } catch (error) {
     console.error('Error saving measurement sheet:', error)
     const errorMessage = error?.messages?.[0] || error?.message || error?.error?.message || __('Failed to save measurement sheet')
