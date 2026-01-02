@@ -137,7 +137,7 @@ const viewLinkedDoc = (doc) => {
     default:
       break
   }
-  let base = '/crm'
+  let base = '/portal'
   if (openDesk) {
     base = '/app'
   }

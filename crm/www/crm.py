@@ -58,7 +58,7 @@ def get_boot():
 
 
 def get_default_route():
-	return "/crm"
+	return "/portal"
 
 
 def run_git_command(command):
