@@ -283,17 +283,6 @@ const allViews = computed(() => {
         return true
       }),
     },
-    {
-      name: 'MASTERS',
-      hideLabel: false,
-      opened: true,
-      views: mastersLinks.filter((link) => {
-        if (link.condition) {
-          return link.condition()
-        }
-        return true
-      }),
-    },
   ]
   if (getPublicViews().length) {
     _views.push({
