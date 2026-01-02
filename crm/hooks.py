@@ -1,12 +1,12 @@
 app_name = "crm"
-app_title = "Frappe CRM"
+app_title = "Fabric Sense"
 app_publisher = "Frappe Technologies Pvt. Ltd."
 app_description = "Kick-ass Open Source CRM"
 app_email = "shariq@frappe.io"
 app_license = "AGPLv3"
 app_icon_url = "/assets/crm/images/logo.svg"
-app_icon_title = "CRM"
-app_icon_route = "/crm"
+app_icon_title = "FABRIC SENSE"
+app_icon_route = "/portal"
 
 # Apps
 # ------------------
@@ -16,8 +16,8 @@ add_to_apps_screen = [
 	{
 		"name": "crm",
 		"logo": "/assets/crm/images/logo.svg",
-		"title": "CRM",
-		"route": "/crm",
+		"title": "FABRIC SENSE",
+		"route": "/portal",
 		"has_permission": "crm.api.check_app_permission",
 	}
 ]
@@ -63,7 +63,7 @@ export_python_type_annotations = True
 # }
 
 website_route_rules = [
-	{"from_route": "/crm/<path:app_path>", "to_route": "crm"},
+	{"from_route": "/portal/<path:app_path>", "to_route": "crm"},
 ]
 
 # Generators

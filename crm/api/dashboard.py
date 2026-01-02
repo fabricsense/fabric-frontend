@@ -5,6 +5,16 @@ from frappe import _
 
 from crm.fcrm.doctype.crm_dashboard.crm_dashboard import create_default_manager_dashboard
 from crm.utils import sales_user_only
+from crm.api.dashboard_constants import (
+	SALES_PERFORMANCE_DATA,
+	CUSTOMER_METRICS_DATA,
+	INVENTORY_DATA,
+	TAILORING_OPERATIONS_DATA,
+	FINANCIAL_METRICS_DATA,
+	PENDING_APPROVALS_DATA,
+	MEASUREMENT_SHEETS_DATA,
+	GEOGRAPHIC_ANALYTICS_DATA,
+)
 
 
 @frappe.whitelist()
@@ -1192,3 +1202,494 @@ def get_deal_status_change_counts(from_date, to_date, deal_conds="", filters=Non
 		as_dict=True,
 	)
 	return result or []
+
+
+# ============================================================================
+# CUSTOM DASHBOARD FUNCTIONS
+# ============================================================================
+
+@frappe.whitelist()
+@sales_user_only
+def get_custom_dashboard(from_date="", to_date="", user=""):
+	"""
+	Get the custom dashboard data with sample data.
+	Returns layout array with all dashboard sections.
+	"""
+	layout = []
+	
+	# Top Section - KPI Cards (Row 0-2)
+	layout.extend([
+		{
+			"name": "custom_total_revenue",
+			"type": "number_chart",
+			"tooltip": "Total sales revenue for current month",
+			"layout": {"x": 0, "y": 0, "w": 4, "h": 3, "i": "custom_total_revenue"},
+		},
+		{
+			"name": "custom_sales_orders_pending",
+			"type": "number_chart",
+			"tooltip": "Sales orders pending approval",
+			"layout": {"x": 4, "y": 0, "w": 4, "h": 3, "i": "custom_sales_orders_pending"},
+		},
+		{
+			"name": "custom_outstanding_receivables",
+			"type": "number_chart",
+			"tooltip": "Total outstanding receivables",
+			"layout": {"x": 8, "y": 0, "w": 4, "h": 3, "i": "custom_outstanding_receivables"},
+		},
+		{
+			"name": "custom_low_stock_items",
+			"type": "number_chart",
+			"tooltip": "Items with low stock",
+			"layout": {"x": 12, "y": 0, "w": 4, "h": 3, "i": "custom_low_stock_items"},
+		},
+		{
+			"name": "custom_pending_approvals",
+			"type": "number_chart",
+			"tooltip": "Total pending approvals",
+			"layout": {"x": 16, "y": 0, "w": 4, "h": 3, "i": "custom_pending_approvals"},
+		},
+		{
+			"name": "custom_total_customers",
+			"type": "number_chart",
+			"tooltip": "Total active customers",
+			"layout": {"x": 0, "y": 3, "w": 4, "h": 3, "i": "custom_total_customers"},
+		},
+		{
+			"name": "custom_lead_conversion_rate",
+			"type": "number_chart",
+			"tooltip": "Lead conversion rate percentage",
+			"layout": {"x": 4, "y": 3, "w": 4, "h": 3, "i": "custom_lead_conversion_rate"},
+		},
+		{
+			"name": "custom_average_order_value",
+			"type": "number_chart",
+			"tooltip": "Average order value",
+			"layout": {"x": 8, "y": 3, "w": 4, "h": 3, "i": "custom_average_order_value"},
+		},
+		{
+			"name": "custom_active_projects",
+			"type": "number_chart",
+			"tooltip": "Total active projects",
+			"layout": {"x": 12, "y": 3, "w": 4, "h": 3, "i": "custom_active_projects"},
+		},
+		{
+			"name": "custom_payment_collection_rate",
+			"type": "number_chart",
+			"tooltip": "Payment collection rate percentage",
+			"layout": {"x": 16, "y": 3, "w": 4, "h": 3, "i": "custom_payment_collection_rate"},
+		},
+	])
+	
+	# Middle Section - Charts (Row 6-15)
+	layout.extend([
+		{
+			"name": "custom_revenue_trend",
+			"type": "axis_chart",
+			"layout": {"x": 0, "y": 6, "w": 10, "h": 9, "i": "custom_revenue_trend"},
+		},
+		{
+			"name": "custom_sales_order_status",
+			"type": "donut_chart",
+			"layout": {"x": 10, "y": 6, "w": 10, "h": 9, "i": "custom_sales_order_status"},
+		},
+		{
+			"name": "custom_top_customers",
+			"type": "axis_chart",
+			"layout": {"x": 0, "y": 15, "w": 10, "h": 9, "i": "custom_top_customers"},
+		},
+		{
+			"name": "custom_inventory_by_category",
+			"type": "donut_chart",
+			"layout": {"x": 10, "y": 15, "w": 10, "h": 9, "i": "custom_inventory_by_category"},
+		},
+		{
+			"name": "custom_sales_invoice_status",
+			"type": "donut_chart",
+			"layout": {"x": 0, "y": 24, "w": 10, "h": 9, "i": "custom_sales_invoice_status"},
+		},
+		{
+			"name": "custom_tailoring_sheets_status",
+			"type": "donut_chart",
+			"layout": {"x": 10, "y": 24, "w": 10, "h": 9, "i": "custom_tailoring_sheets_status"},
+		},
+		{
+			"name": "custom_job_cards_status",
+			"type": "donut_chart",
+			"layout": {"x": 0, "y": 33, "w": 10, "h": 9, "i": "custom_job_cards_status"},
+		},
+		{
+			"name": "custom_material_requests_status",
+			"type": "donut_chart",
+			"layout": {"x": 10, "y": 33, "w": 10, "h": 9, "i": "custom_material_requests_status"},
+		},
+		{
+			"name": "custom_sales_by_channel",
+			"type": "donut_chart",
+			"layout": {"x": 0, "y": 42, "w": 10, "h": 9, "i": "custom_sales_by_channel"},
+		},
+		{
+			"name": "custom_top_pincodes",
+			"type": "axis_chart",
+			"layout": {"x": 10, "y": 42, "w": 10, "h": 9, "i": "custom_top_pincodes"},
+		},
+		{
+			"name": "custom_measurement_sheets_status",
+			"type": "donut_chart",
+			"layout": {"x": 0, "y": 51, "w": 10, "h": 9, "i": "custom_measurement_sheets_status"},
+		},
+		{
+			"name": "custom_approvals_by_type",
+			"type": "donut_chart",
+			"layout": {"x": 10, "y": 51, "w": 10, "h": 9, "i": "custom_approvals_by_type"},
+		},
+	])
+	
+	# Populate data for each layout item
+	for item in layout:
+		method_name = f"get_{item['name']}"
+		if hasattr(frappe.get_attr("crm.api.dashboard"), method_name):
+			method = getattr(frappe.get_attr("crm.api.dashboard"), method_name)
+			item["data"] = method()
+		else:
+			item["data"] = None
+	
+	return layout
+
+
+# Data transformation functions for custom dashboard
+
+def get_custom_total_revenue():
+	"""Get total revenue number chart data."""
+	data = SALES_PERFORMANCE_DATA["sales_revenue"]
+	return {
+		"title": _("Total Revenue"),
+		"tooltip": _("Current month sales revenue"),
+		"value": data["current_month"],
+		"delta": data["growth_mom"],
+		"deltaSuffix": "%",
+		"prefix": "₹",
+	}
+
+
+def get_custom_sales_orders_pending():
+	"""Get pending sales orders count."""
+	data = SALES_PERFORMANCE_DATA["sales_orders"]
+	return {
+		"title": _("Pending Approval"),
+		"tooltip": _("Sales orders pending approval"),
+		"value": data["pending_approval"],
+		"prefix": "",
+	}
+
+
+def get_custom_outstanding_receivables():
+	"""Get outstanding receivables."""
+	data = FINANCIAL_METRICS_DATA["receivables"]
+	return {
+		"title": _("Outstanding Receivables"),
+		"tooltip": _("Total outstanding receivables amount"),
+		"value": data["total_outstanding"],
+		"prefix": "₹",
+	}
+
+
+def get_custom_low_stock_items():
+	"""Get low stock items count."""
+	data = INVENTORY_DATA["inventory"]
+	return {
+		"title": _("Low Stock Items"),
+		"tooltip": _("Items with low stock levels"),
+		"value": data["low_stock_items"],
+		"prefix": "",
+	}
+
+
+def get_custom_pending_approvals():
+	"""Get total pending approvals."""
+	data = PENDING_APPROVALS_DATA["pending_approvals"]
+	return {
+		"title": _("Pending Approvals"),
+		"tooltip": _("Total pending approvals"),
+		"value": data["total"],
+		"prefix": "",
+	}
+
+
+def get_custom_total_customers():
+	"""Get total customers count."""
+	data = CUSTOMER_METRICS_DATA["customers"]
+	prev_count = data["total"] - data["new_this_month"]
+	delta = ((data["total"] - prev_count) / prev_count * 100) if prev_count > 0 else 0
+	return {
+		"title": _("Total Customers"),
+		"tooltip": _("Total active customers"),
+		"value": data["active"],
+		"delta": delta,
+		"deltaSuffix": "%",
+		"prefix": "",
+	}
+
+
+def get_custom_lead_conversion_rate():
+	"""Get lead conversion rate."""
+	data = CUSTOMER_METRICS_DATA["leads"]
+	return {
+		"title": _("Lead Conversion Rate"),
+		"tooltip": _("Percentage of leads converted"),
+		"value": data["conversion_rate"],
+		"deltaSuffix": "%",
+		"prefix": "",
+	}
+
+
+def get_custom_average_order_value():
+	"""Get average order value."""
+	data = SALES_PERFORMANCE_DATA["sales_orders"]
+	return {
+		"title": _("Avg. Order Value"),
+		"tooltip": _("Average value per sales order"),
+		"value": data["average_order_value"],
+		"prefix": "₹",
+	}
+
+
+def get_custom_active_projects():
+	"""Get active projects count."""
+	data = TAILORING_OPERATIONS_DATA["projects"]
+	return {
+		"title": _("Active Projects"),
+		"tooltip": _("Total active projects"),
+		"value": data["total_active"],
+		"prefix": "",
+	}
+
+
+def get_custom_payment_collection_rate():
+	"""Get payment collection rate."""
+	data = FINANCIAL_METRICS_DATA["payments"]
+	return {
+		"title": _("Collection Rate"),
+		"tooltip": _("Payment collection rate percentage"),
+		"value": data["collection_rate"],
+		"deltaSuffix": "%",
+		"prefix": "",
+	}
+
+
+def get_custom_revenue_trend():
+	"""Get revenue trend chart data."""
+	data = FINANCIAL_METRICS_DATA["revenue_trend"]
+	return {
+		"data": data,
+		"title": _("Revenue Trend"),
+		"subtitle": _("Monthly revenue over last 6 months"),
+		"xAxis": {
+			"title": _("Month"),
+			"key": "month",
+			"type": "time",
+			"timeGrain": "month",
+		},
+		"yAxis": {
+			"title": _("Revenue (₹)"),
+		},
+		"series": [
+			{"name": "revenue", "type": "line", "showDataPoints": True},
+		],
+	}
+
+
+def get_custom_sales_order_status():
+	"""Get sales order status donut chart."""
+	data = SALES_PERFORMANCE_DATA["sales_orders"]
+	chart_data = [
+		{"status": "Draft", "count": data["draft"]},
+		{"status": "Pending Approval", "count": data["pending_approval"]},
+		{"status": "Approved", "count": data["approved"]},
+		{"status": "Completed", "count": data["completed"]},
+	]
+	return {
+		"data": chart_data,
+		"title": _("Sales Order Status"),
+		"subtitle": _("Distribution of sales orders by status"),
+		"categoryColumn": "status",
+		"valueColumn": "count",
+	}
+
+
+def get_custom_top_customers():
+	"""Get top customers by revenue bar chart."""
+	data = CUSTOMER_METRICS_DATA["top_customers"]
+	return {
+		"data": data,
+		"title": _("Top Customers by Revenue"),
+		"subtitle": _("Top 5 customers by revenue"),
+		"xAxis": {
+			"title": _("Customer"),
+			"key": "name",
+			"type": "category",
+		},
+		"yAxis": {
+			"title": _("Revenue (₹)"),
+		},
+		"series": [
+			{"name": "revenue", "type": "bar"},
+		],
+	}
+
+
+def get_custom_inventory_by_category():
+	"""Get inventory by category donut chart."""
+	data = INVENTORY_DATA["inventory"]["stock_by_category"]
+	chart_data = [{"category": k, "value": v} for k, v in data.items()]
+	return {
+		"data": chart_data,
+		"title": _("Stock Value by Category"),
+		"subtitle": _("Inventory value distribution by category"),
+		"categoryColumn": "category",
+		"valueColumn": "value",
+	}
+
+
+def get_custom_sales_invoice_status():
+	"""Get sales invoice status donut chart."""
+	data = SALES_PERFORMANCE_DATA["sales_invoices"]
+	chart_data = [
+		{"status": "Draft", "count": data["draft"]},
+		{"status": "Submitted", "count": data["submitted"]},
+		{"status": "Paid", "count": data["paid"]},
+		{"status": "Outstanding", "count": data["outstanding"]},
+	]
+	return {
+		"data": chart_data,
+		"title": _("Sales Invoice Status"),
+		"subtitle": _("Distribution of sales invoices by status"),
+		"categoryColumn": "status",
+		"valueColumn": "count",
+	}
+
+
+def get_custom_tailoring_sheets_status():
+	"""Get tailoring sheets status donut chart."""
+	data = TAILORING_OPERATIONS_DATA["tailoring_sheets"]
+	chart_data = [
+		{"status": "Draft", "count": data["draft"]},
+		{"status": "In Progress", "count": data["in_progress"]},
+		{"status": "Completed", "count": data["completed"]},
+	]
+	return {
+		"data": chart_data,
+		"title": _("Tailoring Sheets Status"),
+		"subtitle": _("Distribution of tailoring sheets by status"),
+		"categoryColumn": "status",
+		"valueColumn": "count",
+	}
+
+
+def get_custom_job_cards_status():
+	"""Get job cards status donut chart."""
+	data = TAILORING_OPERATIONS_DATA["job_cards"]
+	chart_data = [
+		{"status": "Not Started", "count": data["not_started"]},
+		{"status": "Working", "count": data["working"]},
+		{"status": "Completed", "count": data["completed"]},
+	]
+	return {
+		"data": chart_data,
+		"title": _("Job Cards Status"),
+		"subtitle": _("Distribution of job cards by status"),
+		"categoryColumn": "status",
+		"valueColumn": "count",
+	}
+
+
+def get_custom_material_requests_status():
+	"""Get material requests status donut chart."""
+	data = INVENTORY_DATA["material_requests"]
+	chart_data = [
+		{"status": "Draft", "count": data["draft"]},
+		{"status": "Pending Approval", "count": data["pending_approval"]},
+		{"status": "Approved", "count": data["approved"]},
+		{"status": "Completed", "count": data["completed"]},
+	]
+	return {
+		"data": chart_data,
+		"title": _("Material Requests Status"),
+		"subtitle": _("Distribution of material requests by status"),
+		"categoryColumn": "status",
+		"valueColumn": "count",
+	}
+
+
+def get_custom_sales_by_channel():
+	"""Get sales by channel donut chart."""
+	data = GEOGRAPHIC_ANALYTICS_DATA["sales_by_channel"]
+	chart_data = [
+		{"channel": "Walk-in", "revenue": data["walk_in"]["revenue"]},
+		{"channel": "WhatsApp", "revenue": data["whatsapp"]["revenue"]},
+		{"channel": "Phone", "revenue": data["phone"]["revenue"]},
+	]
+	return {
+		"data": chart_data,
+		"title": _("Sales by Channel"),
+		"subtitle": _("Revenue distribution by sales channel"),
+		"categoryColumn": "channel",
+		"valueColumn": "revenue",
+	}
+
+
+def get_custom_top_pincodes():
+	"""Get top pincodes by revenue bar chart."""
+	data = GEOGRAPHIC_ANALYTICS_DATA["sales_by_pincode"][:10]  # Top 10
+	return {
+		"data": data,
+		"title": _("Top Pincodes by Revenue"),
+		"subtitle": _("Top 10 pincodes by sales revenue"),
+		"xAxis": {
+			"title": _("Pincode"),
+			"key": "pincode",
+			"type": "category",
+		},
+		"yAxis": {
+			"title": _("Revenue (₹)"),
+		},
+		"series": [
+			{"name": "revenue", "type": "bar"},
+		],
+	}
+
+
+def get_custom_measurement_sheets_status():
+	"""Get measurement sheets status donut chart."""
+	data = MEASUREMENT_SHEETS_DATA["measurement_sheets"]
+	chart_data = [
+		{"status": "Draft", "count": data["draft"]},
+		{"status": "Pending Approval", "count": data["customer_approval_pending"]},
+		{"status": "Approved", "count": data["approved"]},
+		{"status": "Rejected", "count": data["rejected"]},
+	]
+	return {
+		"data": chart_data,
+		"title": _("Measurement Sheets Status"),
+		"subtitle": _("Distribution of measurement sheets by status"),
+		"categoryColumn": "status",
+		"valueColumn": "count",
+	}
+
+
+def get_custom_approvals_by_type():
+	"""Get approvals by type donut chart."""
+	data = PENDING_APPROVALS_DATA["pending_approvals"]
+	chart_data = [
+		{"type": "Sales Orders", "count": data["sales_orders"]},
+		{"type": "Material Requests", "count": data["material_requests"]},
+		{"type": "Payment Entries", "count": data["payment_entries"]},
+		{"type": "Discount Approvals", "count": data["discount_approvals"]},
+	]
+	return {
+		"data": chart_data,
+		"title": _("Pending Approvals by Type"),
+		"subtitle": _("Distribution of pending approvals"),
+		"categoryColumn": "type",
+		"valueColumn": "count",
+	}
