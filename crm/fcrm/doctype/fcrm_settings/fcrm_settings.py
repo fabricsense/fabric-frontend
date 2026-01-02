@@ -79,6 +79,16 @@ def get_standard_dropdown_items():
 
 def after_migrate():
 	sync_table("dropdown_items", "standard_dropdown_items")
+	set_default_brand_name()
+
+
+def set_default_brand_name():
+	"""Set default brand name to FABRIC SENSE if not already set."""
+	crm_settings = FCRMSettings("FCRM Settings")
+	if not crm_settings.brand_name:
+		crm_settings.brand_name = "FABRIC SENSE"
+		crm_settings.save(ignore_permissions=True)
+		frappe.db.commit()
 
 
 def sync_table(key, hook):
